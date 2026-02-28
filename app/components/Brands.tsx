@@ -30,7 +30,7 @@ const Brands = () => {
       </div>
 
       {/* 2. The Infinite Kinetic Ribbon */}
-      <div className="relative flex flex-col gap-4 rotate-[-2deg] scale-105 group">
+      <div className="relative flex flex-col gap-4 -rotate-2 scale-105 group">
         
         {/* Top Ribbon (Moving Left) */}
         <div className="flex overflow-hidden border-y border-white/5 bg-black backdrop-blur-3xl py-10">
@@ -77,7 +77,7 @@ const Brands = () => {
 
 
       {/* Background Glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[300px] bg-yellow-500/5 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-200 h-75 bg-yellow-500/5 blur-[120px] rounded-full pointer-events-none" />
 
       
      
