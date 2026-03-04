@@ -95,8 +95,8 @@ const Page = () => {
       <FeatureTyres />
       <Brands />
       <Testimonials />
-      <CallToAction/>
-      <Footer/>
+      <CallToAction />
+      <Footer />
     </div>
   );
 };
