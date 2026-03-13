@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@react-three/fiber": "^9.5.0",
+    "axios": "^1.13.6",
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -25,6 +26,7 @@
     "radix-ui": "^1.4.3",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "react-hot-toast": "^2.6.0",
     "tailwind-merge": "^3.5.0",
     "three": "^0.167.1"
   },
