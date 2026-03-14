@@ -5,6 +5,8 @@ import { connectDB } from "./config/db.js";
 import userRoutes from "./routes/userRoutes.js";
 import inventoryRoutes from "./routes/inventoryRoutes.js";
 import multipart from "@fastify/multipart";
+import customerRoutes from "./routes/customerRoutes.js";
+import orderRoutes from "./routes/orderRoutes.js";
 
 dotenv.config();
 
@@ -14,12 +16,13 @@ const port = process.env.PORT || 5000;
 
 // Register CORS
 fastify.register(cors, { origin: true });
-fastify.register(multipart)
-
+fastify.register(multipart);
 
 // api
 fastify.register(userRoutes, { prefix: "/api/users" });
-fastify.register(inventoryRoutes, { prefix: "/api/inventory" })
+fastify.register(inventoryRoutes, { prefix: "/api/inventory" });
+fastify.register(customerRoutes, { prefix: "/api/customer" });
+fastify.register(orderRoutes, { prefix: "/api/order" });
 
 // Global Error Handler
 fastify.setErrorHandler((error, request, reply) => {
