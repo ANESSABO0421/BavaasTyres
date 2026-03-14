@@ -1,6 +1,6 @@
 import Inventory from "../models/Inventory.js";
 import createRandomId from "../utils/createRandomId.js";
-import cloudinary from "../utils/cloudinary.js";
+import { uploadToCloudinary } from "../utils/uploadToCloudinary.js";
 
 export const createInventory = async (request, reply) => {
   try {
@@ -10,21 +10,11 @@ export const createInventory = async (request, reply) => {
     const fields = {};
 
     for await (const part of parts) {
-      if (part.type === "file" && part.fieldname === "imageUrl") {
-        const uploadResult = await new Promise((resolve, reject) => {
-          const stream = cloudinary.uploader.upload_stream(
-            { folder: "inventory" },
-            (error, result) => {
-              if (error) return reject(error);
-              resolve(result);
-            },
-          );
+      if (part.type === "file" && part.fieldname === "image") {
+        imageUrl = await uploadToCloudinary(part.file);
+      }
 
-          part.file.pipe(stream);
-        });
-
-        imageUrl = uploadResult.secure_url;
-      } else {
+      if (part.type === "field") {
         fields[part.fieldname] = part.value;
       }
     }
@@ -40,15 +30,6 @@ export const createInventory = async (request, reply) => {
       minStock,
     } = fields;
 
-    if (!brand || !model || !size || !vehicleType) {
-      return reply.code(400).send({
-        success: false,
-        message: "Required fields missing",
-      });
-    }
-
-    console.log(imageUrl);
-
     const item = await Inventory.create({
       _id: createRandomId("INV"),
       brand,
@@ -59,22 +40,12 @@ export const createInventory = async (request, reply) => {
       sellingPrice: Number(sellingPrice),
       quantity: Number(quantity),
       minStock: Number(minStock),
+      imageUrl: imageUrl || "",
     });
-
-    if (imageUrl) {
-      await Inventory.updateOne(
-        { _id: item._id },
-        {
-          $addToSet: {
-            imageUrl: imageUrl,
-          },
-        },
-      );
-    }
 
     return reply.code(201).send({
       success: true,
-      item: item,
+      item,
     });
   } catch (error) {
     return reply.code(500).send({
@@ -83,7 +54,6 @@ export const createInventory = async (request, reply) => {
     });
   }
 };
-
 // get inventory
 export const getInventory = async (request, reply) => {
   try {
