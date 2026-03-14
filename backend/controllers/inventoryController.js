@@ -110,3 +110,31 @@ export const deleteInventory = async (request, reply) => {
     });
   }
 };
+
+
+
+export const getInventoryById = async (request, reply) => {
+  try {
+    const { id } = request.params;
+
+    const item = await Inventory.findById(id);
+
+    if (!item) {
+      return reply.code(404).send({
+        success: false,
+        message: "Inventory item not found",
+      });
+    }
+
+    return reply.code(200).send({
+      success: true,
+      item,
+    });
+
+  } catch (error) {
+    return reply.code(500).send({
+      success: false,
+      message: error.message,
+    });
+  }
+};

@@ -16,8 +16,8 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  initialData?: InventoryItem | null;
 }
-
 interface InventoryItem {
   brand: string;
   model: string;
@@ -29,7 +29,12 @@ interface InventoryItem {
   minStock: string;
 }
 
-const AddUnitComponent = ({ isOpen, onClose, onSuccess }: Props) => {
+const AddUnitComponent = ({
+  isOpen,
+  onClose,
+  onSuccess,
+  initialData,
+}: Props) => {
   const [formData, setFormData] = useState<InventoryItem>({
     brand: "",
     model: "",
@@ -74,36 +79,34 @@ const AddUnitComponent = ({ isOpen, onClose, onSuccess }: Props) => {
   };
 
   const submitForm = async () => {
-  try {
-    const data = new FormData();
+    try {
+      const data = new FormData();
 
-    data.append("brand", formData.brand);
-    data.append("model", formData.model);
-    data.append("size", formData.size);
-    data.append("vehicleType", formData.vehicleType);
-    data.append("purchasePrice", formData.purchasePrice);
-    data.append("sellingPrice", formData.sellingPrice);
-    data.append("quantity", formData.quantity);
-    data.append("minStock", formData.minStock);
+      data.append("brand", formData.brand);
+      data.append("model", formData.model);
+      data.append("size", formData.size);
+      data.append("vehicleType", formData.vehicleType);
+      data.append("purchasePrice", formData.purchasePrice);
+      data.append("sellingPrice", formData.sellingPrice);
+      data.append("quantity", formData.quantity);
+      data.append("minStock", formData.minStock);
 
-    if (image) {
-      data.append("image", image);
+      if (image) {
+        data.append("image", image);
+      }
+
+      await authAxios.post("/inventory/createinventory", data, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+    } catch (err) {
+      console.log(err);
     }
-
-    await authAxios.post("/inventory/createinventory", data, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-
-  } catch (err) {
-    console.log(err);
-  }
-};
+  };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-
+    <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
       {/* Overlay */}
       <div
         className="absolute inset-0 bg-black/80 backdrop-blur-md"
@@ -112,7 +115,6 @@ const AddUnitComponent = ({ isOpen, onClose, onSuccess }: Props) => {
 
       {/* Modal */}
       <div className="relative w-full max-w-2xl bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] overflow-hidden">
-
         {/* Header */}
         <div className="p-8 border-b border-white/10 flex justify-between items-center">
           <h2 className="text-xl font-bold flex items-center gap-2">
@@ -127,9 +129,7 @@ const AddUnitComponent = ({ isOpen, onClose, onSuccess }: Props) => {
 
         {/* Body */}
         <div className="p-8 space-y-6">
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
             <input
               name="brand"
               placeholder="Brand"
@@ -193,7 +193,6 @@ const AddUnitComponent = ({ isOpen, onClose, onSuccess }: Props) => {
               onChange={handleChange}
               className="cyber-input"
             />
-
           </div>
 
           {/* Image Upload */}
@@ -214,14 +213,13 @@ const AddUnitComponent = ({ isOpen, onClose, onSuccess }: Props) => {
           </label>
 
           {/* Submit button (no logic) */}
-          <button 
-            onClick={submitForm} 
+          <button
+            onClick={submitForm}
             disabled={loading}
             className="w-full bg-yellow-500 text-black py-3 rounded-xl font-bold disabled:opacity-50"
           >
             {loading ? "Adding..." : "Add Unit"}
           </button>
-
         </div>
       </div>
 
@@ -229,13 +227,12 @@ const AddUnitComponent = ({ isOpen, onClose, onSuccess }: Props) => {
         .cyber-input {
           width: 100%;
           padding: 0.8rem;
-          background: rgba(255,255,255,0.03);
-          border: 1px solid rgba(255,255,255,0.1);
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.1);
           border-radius: 10px;
           outline: none;
         }
       `}</style>
-
     </div>
   );
 };

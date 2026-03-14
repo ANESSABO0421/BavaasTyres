@@ -121,11 +121,11 @@ const Page = () => {
       {/* --- BACKGROUND --- */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.03]" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[100vw] h-[100vw] bg-yellow-600/[0.02] blur-[180px] rounded-full" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-screen h-[100vw] bg-yellow-600/2 blur-[180px] rounded-full" />
       </div>
 
       {/* --- CONSOLE --- */}
-      <div ref={cardRef} style={{ transformStyle: "preserve-3d" }} className="relative z-10 w-full max-w-[500px] bg-black/40 backdrop-blur-[40px] border border-white/10 rounded-[4rem] p-1 shadow-[0_50px_100px_rgba(0,0,0,1)]">
+      <div ref={cardRef} style={{ transformStyle: "preserve-3d" }} className="relative z-10 w-full max-w-125 bg-black/40 backdrop-blur-2xl border border-white/10 rounded-[4rem] p-1 shadow-[0_50px_100px_rgba(0,0,0,1)]">
         <div ref={overlayRef} className="absolute inset-0 rounded-[4rem] z-20 pointer-events-none" />
 
         <div className="relative bg-[#0a0a0a]/90 rounded-[3.9rem] p-10 sm:p-16 flex flex-col items-center border border-white/5">

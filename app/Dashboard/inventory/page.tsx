@@ -1,24 +1,27 @@
 "use client";
 
-import React, { useLayoutEffect, useRef, useState, useEffect, useMemo } from "react";
+import React, { useLayoutEffect, useState, useEffect, useMemo } from "react";
 import gsap from "gsap";
 import {
   Search,
   Plus,
-  Package,
   AlertTriangle,
-  CheckCircle2,
   Layers,
   TrendingUp,
-  Box,
-  X,
-  Database,
+  Image as ImageIcon,
+  Edit3,
+  Trash2,
+  Package,
 } from "lucide-react";
+
 import authAxios from "@/app/utils/authAxios";
 import AddUnitComponent from "@/app/components/AddUnitComponent";
+import EditForm from "@/app/components/EditForm";
 
-// --- Types ---
+// ... (Interface stays the same)
 interface InventoryItem {
+  _id: string;
+  imageUrl: string;
   brand: string;
   model: string;
   size: number;
@@ -33,18 +36,28 @@ const InventoryPage: React.FC = () => {
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isFormOpen, setIsFormOpen] = useState(false); 
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
 
-  /* ---------- DATA FETCH ---------- */
   const fetchInventory = async () => {
     try {
       const resp = await authAxios.get("/inventory/getinventory");
-      console.log(resp.data)
       setInventory(resp.data.items);
     } catch (error) {
       console.error("Inventory fetch error:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const deleteItem = async (id: string) => {
+    if (!window.confirm("ARE_YOU_SURE_YOU_WANT_TO_PURGE_THIS_RECORD?")) return;
+    try {
+      await authAxios.post(`/inventory/deleteinventory/${id}`);
+      fetchInventory();
+    } catch (err) {
+      console.error("Delete error:", err);
     }
   };
 
@@ -54,88 +67,140 @@ const InventoryPage: React.FC = () => {
 
   const filteredInventory = useMemo(() => {
     return inventory.filter((item) =>
-      `${item.brand} ${item.model}`.toLowerCase().includes(searchQuery.toLowerCase())
+      `${item.brand} ${item.model}`
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()),
     );
   }, [searchQuery, inventory]);
 
-  /* ---------- GSAP ENTRANCE ---------- */
   useLayoutEffect(() => {
     if (loading) return;
     gsap.fromTo(
       ".inv-card",
-      { opacity: 0, y: 20, filter: "blur(10px)" },
-      { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.6, stagger: 0.05, ease: "expo.out" }
+      { opacity: 0, y: 30, filter: "blur(12px)" },
+      {
+        opacity: 1,
+        y: 0,
+        filter: "blur(0px)",
+        duration: 0.8,
+        stagger: 0.08,
+        ease: "power4.out",
+      },
     );
   }, [loading]);
 
+  const handleEditOpen = (item: InventoryItem) => {
+    setEditingItem(item);
+    setIsEditOpen(true);
+  };
+
   return (
-    <div className="relative min-h-screen text-white p-4 md:p-8 space-y-8 font-sans selection:bg-yellow-500/30 overflow-x-hidden">
-      
-      {/* --- ADD UNIT DRAWER OVERLAY --- */}
+    <div className="relative min-h-screen text-white p-6 md:p-12 space-y-12 font-sans bg-[#050505]">
+      {/* Visual Depth Background */}
+      <div className="fixed top-0 right-0 w-200 h-200 bg-yellow-500/2 blur-[150px] rounded-full -z-10 pointer-events-none" />
+      <div className="fixed bottom-0 left-0 w-125 h-125 bg-blue-500/2 blur-[120px] rounded-full -z-10 pointer-events-none" />
+
+      {/* Forms */}
       <AddUnitComponent
-        isOpen={isFormOpen} 
-        onClose={() => setIsFormOpen(false)} 
-        onSuccess={fetchInventory} 
+        isOpen={isFormOpen}
+        onClose={() => setIsFormOpen(false)}
+        onSuccess={fetchInventory}
+      />
+      <EditForm
+        item={editingItem}
+        isOpen={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+        onSuccess={fetchInventory}
       />
 
-      {/* --- TOP HUD --- */}
-      <header className="flex flex-col lg:flex-row justify-between items-end lg:items-center gap-6">
-        <div className="space-y-1">
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-1 bg-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.5)]" />
-            <h1 className="text-4xl font-black italic tracking-tighter uppercase">
-              Inventory <span className="text-yellow-500">OS</span>
-            </h1>
-          </div>
-          <p className="text-[10px] font-mono text-white/40 tracking-[0.2em] flex items-center gap-2">
-            <span className="inline-block w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            SYSTEM_ACTIVE // KERALA_HUB_v2.0
+      {/* --- HEADER --- */}
+      <header className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-8">
+        <div>
+          <h1 className="text-6xl font-black italic uppercase tracking-tighter leading-none">
+            Stock{" "}
+            <span className="text-yellow-500 underline decoration-1 underline-offset-8">
+              Engine
+            </span>
+          </h1>
+          <p className="text-[10px] font-mono text-white/30 tracking-[0.4em] uppercase mt-4">
+            Terminal_Active // Port: {inventory.length}_Units_Detected
           </p>
         </div>
 
-        <div className="flex items-center gap-4 w-full lg:w-auto">
-          <div className="relative flex-grow lg:w-80 group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-yellow-500 transition-colors" size={18} />
+        <div className="flex flex-col sm:flex-row items-center gap-4 w-full xl:w-auto">
+          <div className="relative w-full sm:w-96 group">
+            <Search
+              className="absolute left-5 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-yellow-500 transition-colors"
+              size={18}
+            />
             <input
               type="text"
-              placeholder="SEARCH_RECORDS..."
+              placeholder="SEARCH_MANIFEST..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white/[0.03] border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-xs font-mono focus:border-yellow-500/50 focus:bg-white/[0.05] outline-none transition-all"
+              className="w-full bg-white/3 border border-white/10 rounded-2xl py-5 pl-14 pr-6 text-xs outline-none focus:border-yellow-500/40 focus:bg-white/5 transition-all"
             />
           </div>
-          <button 
+
+          <button
             onClick={() => setIsFormOpen(true)}
-            className="bg-yellow-500 hover:bg-yellow-400 text-black px-6 py-4 rounded-2xl font-black flex items-center gap-2 transition-all active:scale-95 shadow-[0_0_20px_rgba(234,179,8,0.2)]"
+            className="w-full sm:w-auto bg-yellow-500 text-black px-8 py-5 rounded-2xl font-black flex items-center justify-center gap-3 hover:scale-105 active:scale-95 transition-all shadow-[0_20px_40px_-10px_rgba(234,179,8,0.3)]"
           >
             <Plus size={20} strokeWidth={3} />
-            <span className="hidden md:inline text-xs tracking-tighter">ADD_UNIT</span>
+            DEPLOY_UNIT
           </button>
         </div>
       </header>
 
-      {/* --- STATS --- */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <StatCard label="Total Units" value={inventory.reduce((sum, i) => sum + i.quantity, 0)} icon={<Layers />} color="yellow" />
-        <StatCard label="Inventory Value" value={`₹${inventory.reduce((sum, i) => sum + (i.sellingPrice * i.quantity), 0).toLocaleString()}`} icon={<TrendingUp />} color="green" />
-        <StatCard label="Critical Alerts" value={inventory.filter(i => i.quantity <= i.minStock).length} icon={<AlertTriangle />} color="red" />
+      {/* --- STATS GRID --- */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <StatCard
+          label="Global Inventory"
+          value={inventory.reduce((sum, i) => sum + i.quantity, 0)}
+          sub="Units in stock"
+          icon={<Layers className="text-yellow-500/50" />}
+        />
+        <StatCard
+          label="Total Valuation"
+          value={`₹${inventory.reduce((sum, i) => sum + i.sellingPrice * i.quantity, 0).toLocaleString()}`}
+          sub="Current Liquid Assets"
+          icon={<TrendingUp className="text-green-500/50" />}
+        />
+        <StatCard
+          label="System Alerts"
+          value={inventory.filter((i) => i.quantity <= i.minStock).length}
+          sub="Low stock detected"
+          icon={<AlertTriangle className="text-red-500/50" />}
+        />
       </div>
 
-      {/* --- TABLE --- */}
-      <div className="relative bg-white/[0.02] border border-white/5 rounded-[2rem] backdrop-blur-md overflow-hidden">
+      {/* --- DATA TABLE --- */}
+      <div className="bg-white/2 border border-white/5 rounded-[2.5rem] overflow-hidden backdrop-blur-3xl shadow-2xl">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse">
             <thead>
-              <tr className="border-b border-white/5 text-[10px] font-mono text-white/30 uppercase tracking-[0.2em]">
-                <th className="px-8 py-6 text-left">Product_ID</th>
-                <th className="px-8 py-6 text-left">Specs</th>
+              <tr className="bg-white/3 text-[10px] text-white/40 uppercase font-mono tracking-[0.3em]">
+                <th className="px-8 py-6 text-left">Product_Meta</th>
+                <th className="px-8 py-6 text-left">Specification</th>
                 <th className="px-8 py-6 text-left">Stock_Level</th>
-                <th className="px-8 py-6 text-left">Unit_Price</th>
-                <th className="px-8 py-6 text-right">Operational_Status</th>
+                <th className="px-8 py-6 text-left">Valuation</th>
+                <th className="px-8 py-6 text-center">Status</th>
+                <th className="px-8 py-6 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/[0.03]">
-              {loading ? <LoadingSkeleton /> : filteredInventory.map((item, idx) => <InventoryRow key={idx} item={item} />)}
+            <tbody className="divide-y divide-white/5">
+              {loading ? (
+                <LoadingSkeleton />
+              ) : (
+                filteredInventory.map((item) => (
+                  <InventoryRow
+                    key={item._id}
+                    item={item}
+                    onDelete={deleteItem}
+                    onEdit={handleEditOpen}
+                  />
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -144,91 +209,118 @@ const InventoryPage: React.FC = () => {
   );
 };
 
+/* --- SUB-COMPONENTS --- */
 
+const StatCard = ({ label, value, icon, sub }: any) => (
+  <div className="inv-card group bg-white/2 border border-white/5 p-8 rounded-[2.5rem] flex justify-between items-start hover:bg-white/4 hover:border-white/10 transition-all duration-500">
+    <div className="space-y-2">
+      <p className="text-[10px] font-mono uppercase tracking-widest text-white/30">
+        {label}
+      </p>
+      <p className="text-4xl font-black tracking-tighter italic">{value}</p>
+      <p className="text-[9px] font-mono text-white/20 uppercase">{sub}</p>
+    </div>
+    <div className="p-4 bg-black/40 rounded-2xl group-hover:scale-110 transition-transform">
+      {icon}
+    </div>
+  </div>
+);
 
+const InventoryRow = ({ item, onDelete, onEdit }: any) => {
+  const isCritical = item.quantity <= item.minStock;
 
-/* --- Keep the previous StatCard, InventoryRow, and LoadingSkeleton components here --- */
-const StatCard = ({ label, value, icon, color }: any) => {
-    const colors: any = {
-      yellow: "text-yellow-500 bg-yellow-500/10 border-yellow-500/20",
-      green: "text-green-500 bg-green-500/10 border-green-500/20",
-      red: "text-red-500 bg-red-500/10 border-red-500/20",
-    };
-  
-    return (
-      <div className="inv-card bg-white/[0.02] border border-white/5 p-6 rounded-[2rem] flex items-center justify-between group hover:bg-white/[0.04] transition-all">
-        <div className="space-y-1">
-          <p className="text-[10px] font-mono text-white/30 uppercase tracking-widest">{label}</p>
-          <p className="text-2xl font-black tracking-tighter">{value}</p>
-        </div>
-        <div className={`p-4 rounded-2xl ${colors[color]} group-hover:scale-110 transition-transform`}>
-          {React.cloneElement(icon, { size: 24 })}
-        </div>
-      </div>
-    );
-  };
-  
-  const InventoryRow = ({ item }: { item: InventoryItem }) => {
-    const isCritical = item.quantity <= item.minStock;
-  
-    return (
-      <tr className="inv-card group hover:bg-white/[0.02] transition-colors">
-        <td className="px-8 py-6">
-          <div className="flex items-center gap-4">
-            <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-white/10 to-transparent flex items-center justify-center border border-white/10 group-hover:border-yellow-500/50 transition-colors">
-              <Box className="text-white/40 group-hover:text-yellow-500" size={20} />
-            </div>
-            <div>
-              <p className="font-bold text-sm tracking-tight group-hover:text-yellow-500 transition-colors uppercase">
-                {item.brand}
-              </p>
-              <p className="text-[11px] font-mono text-white/40">{item.model}</p>
-            </div>
-          </div>
-        </td>
-        <td className="px-8 py-6">
-          <span className="text-xs font-mono bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
-            R{item.size} / {item.vehicleType}
-          </span>
-        </td>
-        <td className="px-8 py-6">
-          <div className="flex flex-col gap-1">
-            <span className={`text-sm font-black ${isCritical ? 'text-red-500' : 'text-white'}`}>
-              {item.quantity} <span className="text-[10px] text-white/20 font-normal">Units</span>
-            </span>
-            <div className="w-24 h-1 bg-white/5 rounded-full overflow-hidden">
-              <div 
-                className={`h-full rounded-full ${isCritical ? 'bg-red-500' : 'bg-green-500'}`} 
-                style={{ width: `${Math.min((item.quantity / (item.minStock * 2)) * 100, 100)}%` }}
+  return (
+    <tr className="inv-card group hover:bg-white/2 transition-colors">
+      <td className="px-8 py-6">
+        <div className="flex items-center gap-6">
+          <div className="relative w-16 h-16 bg-black rounded-2xl overflow-hidden border border-white/5 group-hover:border-yellow-500/30 transition-all">
+            {item.imageUrl ? (
+              <img
+                src={item.imageUrl}
+                className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-500"
               />
-            </div>
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-white/10">
+                <ImageIcon size={24} />
+              </div>
+            )}
           </div>
-        </td>
-        <td className="px-8 py-6 font-mono text-sm">
+          <div>
+            <p className="font-black text-lg tracking-tight uppercase italic leading-tight">
+              {item.brand}
+            </p>
+            <p className="text-[10px] font-mono text-white/30 uppercase">
+              {item.model}
+            </p>
+          </div>
+        </div>
+      </td>
+
+      <td className="px-8 py-6">
+        <div className="flex items-center gap-2">
+          <span className="px-2 py-1 bg-white/5 rounded text-[10px] font-bold text-white/60 uppercase">
+            R{item.size}
+          </span>
+          <span className="px-2 py-1 bg-white/5 rounded text-[10px] font-bold text-white/60 uppercase">
+            {item.vehicleType}
+          </span>
+        </div>
+      </td>
+
+      <td className="px-8 py-6 font-mono font-bold text-sm">
+        {item.quantity} <span className="text-[10px] text-white/20">Units</span>
+      </td>
+
+      <td className="px-8 py-6">
+        <p className="font-black text-yellow-500/80">
           ₹{item.sellingPrice.toLocaleString()}
-        </td>
-        <td className="px-8 py-6 text-right">
-          <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all
-            ${isCritical 
-              ? "bg-red-500/10 border-red-500/20 text-red-400 shadow-[0_0_15px_rgba(239,68,68,0.1)]" 
-              : "bg-green-500/10 border-green-500/20 text-green-400"
-            }`}>
-            {isCritical ? <AlertTriangle size={12} /> : <CheckCircle2 size={12} />}
-            {isCritical ? "Low_Stock" : "In_Stock"}
-          </div>
+        </p>
+      </td>
+
+      <td className="px-8 py-6">
+        <div className="flex justify-center">
+          <span
+            className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${
+              isCritical
+                ? "bg-red-500/10 border-red-500/20 text-red-500"
+                : "bg-green-500/10 border-green-500/20 text-green-500"
+            }`}
+          >
+            {isCritical ? "Low_Stock_Alert" : "Stable_Output"}
+          </span>
+        </div>
+      </td>
+
+      <td className="px-8 py-6">
+        <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100  translate-x-4 group-hover:translate-x-0 transition-all">
+          <button
+            onClick={() => onEdit(item)}
+            className="p-3 bg-white/5 hover:bg-white/10 rounded-xl text-white/40 hover:text-white transition-all"
+          >
+            <Edit3 size={16} />
+          </button>
+          <button
+            onClick={() => onDelete(item._id)}
+            className="p-3 bg-red-600/10 hover:bg-red-600 rounded-xl text-red-500 hover:text-white transition-all"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      </td>
+    </tr>
+  );
+};
+
+const LoadingSkeleton = () => (
+  <>
+    {[...Array(5)].map((_, i) => (
+      <tr key={i} className="animate-pulse">
+        <td colSpan={6} className="px-10 py-10">
+          <div className="h-16 bg-white/3 rounded-3xl" />
         </td>
       </tr>
-    );
-  };
-  
-  const LoadingSkeleton = () => (
-    <>
-      {[...Array(5)].map((_, i) => (
-        <tr key={i} className="animate-pulse">
-          <td colSpan={5} className="p-8"><div className="h-12 bg-white/5 rounded-2xl w-full" /></td>
-        </tr>
-      ))}
-    </>
-  );
+    ))}
+  </>
+);
 
 export default InventoryPage;
