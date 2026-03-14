@@ -10,6 +10,7 @@ const InventorySchema = new mongoose.Schema({
   sellingPrice: { type: Number, required: true },
   quantity: { type: Number, required: true },
   minStock: { type: Number, required: true },
+  imageUrl: { type: String },
 });
 
 export default mongoose.model("Inventory", InventorySchema);

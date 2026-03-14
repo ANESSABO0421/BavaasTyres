@@ -4,6 +4,7 @@ import cors from "@fastify/cors";
 import { connectDB } from "./config/db.js";
 import userRoutes from "./routes/userRoutes.js";
 import inventoryRoutes from "./routes/inventoryRoutes.js";
+import multipart from "@fastify/multipart";
 
 dotenv.config();
 
@@ -13,6 +14,8 @@ const port = process.env.PORT || 5000;
 
 // Register CORS
 fastify.register(cors, { origin: true });
+fastify.register(multipart)
+
 
 // api
 fastify.register(userRoutes, { prefix: "/api/users" });
