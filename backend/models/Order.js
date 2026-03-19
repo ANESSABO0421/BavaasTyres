@@ -2,15 +2,14 @@ import mongoose from "mongoose";
 
 const orderItemSchema = new mongoose.Schema({
   productId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Inventory",
+    type: String, // changed
     required: true
   },
   quantity: {
     type: Number,
     required: true
   },
-  price: {
+  priceAtSale: {   // better name
     type: Number,
     required: true
   }
@@ -19,7 +18,7 @@ const orderItemSchema = new mongoose.Schema({
 const orderSchema = new mongoose.Schema({
   customerId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Customer",
+    ref: "Customers", // match your model name
     required: true
   },
   items: [orderItemSchema],
@@ -32,4 +31,4 @@ const orderSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-export default mongoose.model("Order", orderSchema);
+export default mongoose.model("Orders", orderSchema);

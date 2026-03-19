@@ -6,7 +6,6 @@ import userRoutes from "./routes/userRoutes.js";
 import inventoryRoutes from "./routes/inventoryRoutes.js";
 import multipart from "@fastify/multipart";
 import customerRoutes from "./routes/customerRoutes.js";
-import orderRoutes from "./routes/orderRoutes.js";
 
 dotenv.config();
 
@@ -22,7 +21,6 @@ fastify.register(multipart);
 fastify.register(userRoutes, { prefix: "/api/users" });
 fastify.register(inventoryRoutes, { prefix: "/api/inventory" });
 fastify.register(customerRoutes, { prefix: "/api/customer" });
-fastify.register(orderRoutes, { prefix: "/api/order" });
 
 // Global Error Handler
 fastify.setErrorHandler((error, request, reply) => {
